@@ -14,3 +14,14 @@ Program to localize quickly.
 - [ ] add a way to change messages directory.
 - [ ] refresh on config change w/out errors
 - [ ] add support for nested keys
+
+# Screenshots
+
+## Home
+![home](./screenshots/home.png)
+
+## Create key
+![create key](./screenshots/create-key.png)
+
+## Edit View
+![edit view](./screenshots/edit-view.png)
