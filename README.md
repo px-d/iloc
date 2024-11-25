@@ -13,3 +13,4 @@ Program to localize quickly.
 
 - [ ] add a way to change messages directory.
 - [ ] refresh on config change w/out errors
+- [ ] add support for nested keys
