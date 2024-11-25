@@ -1,38 +1,15 @@
-# sv
+# iloc
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Program to localize quickly.
 
-## Creating a project
+## usage
 
-If you're seeing this, you've probably already done this step. Congrats!
+1. download
+2. `bun install`
+3. `bun run tauri dev`
+4. Go to config directory and edit `config.json` to your needs.
 
-```bash
-# create a new project in the current directory
-npx sv create
+## todos:
 
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- [ ] add a way to change messages directory.
+- [ ] refresh on config change w/out errors
