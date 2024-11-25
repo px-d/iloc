@@ -14,7 +14,7 @@ Program to localize quickly.
 - [ ] add a way to change messages directory.
 - [ ] refresh on config change w/out errors
 - [ ] add support for nested keys
-- [ ] add support for searching for content rather then only keys
+- [x] add support for searching for content rather then only keys
 
 # Screenshots
 

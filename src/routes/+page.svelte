@@ -89,7 +89,7 @@
 		</div>
 		<div class="flex-1 p-4">
 			{#if trState.selectedTranslationIndex === null}
-				<div>Select a key from the left!</div>
+				<div class="dark:text-white">Select a key from the left!</div>
 			{:else}
 				<Editor key={trState.filteredKeys[trState.selectedTranslationIndex]} />
 			{/if}
