@@ -18,14 +18,14 @@
 </script>
 
 <nav
-	class="bg-linear-150 from-cyan-400 to-green-200 p-2 sticky top-0 flex justify-between items-center z-50"
+	class="sticky top-0 z-50 flex items-center justify-between bg-linear-150 from-cyan-400 to-green-200 p-2"
 >
 	<ul class="flex space-x-2">
-		<a href="/" class="bg-white/30 px-4 py-2 rounded-md" class:active={isActive('/')}> Overview </a>
-		<a href="/dupes" class="bg-white/30 px-4 py-2 rounded-md" class:active={isActive('/dupes')}>
+		<a href="/" class="rounded-md bg-white/30 px-4 py-2" class:active={isActive('/')}> Overview </a>
+		<a href="/dupes" class="rounded-md bg-white/30 px-4 py-2" class:active={isActive('/dupes')}>
 			Duplicates
 		</a>
-		<a href="/create" class="bg-white/30 px-4 py-2 rounded-md" class:active={isActive('/create')}>
+		<a href="/create" class="rounded-md bg-white/30 px-4 py-2" class:active={isActive('/create')}>
 			Create
 		</a>
 	</ul>

@@ -1,1 +1,5 @@
 @import 'tailwindcss';
+
+html {
+	@apply dark:bg-slate-800;
+}

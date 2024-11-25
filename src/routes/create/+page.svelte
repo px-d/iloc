@@ -29,7 +29,7 @@
 	};
 </script>
 
-<section class="mx-auto w-full sm:w-1/2 xl:w-1/4 2xl:w-1/5 self-center mt-24">
+<section class="mx-auto w-full sm:w-1/2 xl:w-1/4 2xl:w-1/5 self-center mt-24 dark:text-white">
 	<div class="flex flex-col gap-4">
 		<input
 			type="text"

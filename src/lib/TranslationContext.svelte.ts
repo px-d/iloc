@@ -8,8 +8,7 @@ export type Translation = {
 
 	translations: Record<string, string>;
 	file: {
-		baseDir: BaseDirectory;
-		name: string;
+		path: string;
 	};
 };
 
@@ -22,10 +21,23 @@ export class TranslationState {
 	translations = $state<Translation[]>([]);
 
 	searchQuery = $state('');
-	selectedTranslation = $state<null | number>(null);
+	selectedTranslationIndex = $state<null | number>(null);
 
+	/**
+	 * A reactive store that holds an array of filtered keys.
+	 *
+	 * @type {string[]} - An array of strings representing the filtered keys.
+	 */
 	filteredKeys = $state<string[]>([]);
 
+	/**
+	 * A derived store that computes a sorted array of unique translation keys.
+	 *
+	 * This store iterates over all translations and collects all unique keys
+	 * from the `translations` objects. The keys are then sorted in ascending order.
+	 *
+	 * @returns {string[]} A sorted array of unique translation keys.
+	 */
 	keyset = $derived(() => {
 		const set = new Set<string>();
 
@@ -37,41 +49,18 @@ export class TranslationState {
 	});
 
 	constructor() {
-		// this.translationDir = dir;
-		// this.baseDir = baseDir;
 		$effect(() => {
 			loadConfig().then((config) => {
 				this.translationDir = config.messagesPath;
 
 				this.loadTranslations().then((x) => {
 					this.translations = x;
+					this.populate(this.keyset());
 				});
 			});
 		});
-		// watch(
-		// 	'config.json',
-		// 	(e) => {
-		// 		if (e.type.modify.kind === 'data' && e.type.modify.mode === 'content') {
-		// 			this.selectedTranslation = null;
-		// 			this.translations = [];
-		// 			this.searchQuery = '';
-		// 			this.filteredKeys = [];
-		// 			loadConfig().then((config) => {
-		// 				console.log('loading cfg');
-
-		// 				this.translationDir = config.messagesPath;
-
-		// 				this.loadTranslations().then((x) => {
-		// 					this.translations = x;
-		// 				});
-		// 			});
-		// 		}
-		// 	},
-		// 	{ baseDir: BaseDirectory.AppConfig }
-		// );
 
 		$effect(() => {
-			this.selectedTranslation = null;
 			if (this.searchQuery === '') {
 				this.filteredKeys = this.keyset();
 				return;
@@ -82,9 +71,25 @@ export class TranslationState {
 				.map((x) => x.trim())
 				.filter((x) => x.length > 0);
 
-			this.filteredKeys = this.keyset().filter((key) =>
+			const queryKey = this.keyset().filter((key) =>
 				queries.some((query) => key.toLowerCase().includes(query.toLowerCase()))
 			);
+
+			const queryValue = this.translations.flatMap((translation) => {
+				return Object.entries(translation.translations)
+					.map(([key, value]) => {
+						if (
+							queries.some((query) => key.toLowerCase().includes(query.toLowerCase())) ||
+							queries.some((query) => value.toLowerCase().includes(query.toLowerCase()))
+						) {
+							return key;
+						}
+						return null;
+					})
+					.filter((x) => x !== null);
+			});
+
+			this.filteredKeys = Array.from(new Set([...queryKey, ...queryValue]));
 		});
 	}
 
@@ -140,8 +145,8 @@ export class TranslationState {
 						locale: file.name.split('/').pop()?.replace('.json', '') || file.name,
 						translations: this.flatten(JSON.parse(text)),
 						file: {
-							baseDir: BaseDirectory.AppData,
-							name: `${this.translationDir}/${file.name}`
+							path: `${this.translationDir}/${file.name}`,
+							name: file.name
 						}
 					} as Translation;
 				});
@@ -164,11 +169,11 @@ export class TranslationState {
 	}
 
 	async save() {
-		for (const t of this.translations) {
-			await writeTextFile(t.file.name, JSON.stringify(t.translations, null, 2), {
-				baseDir: t.file.baseDir
-			});
-		}
+		await Promise.all(this.translations.map(this.save_single));
+	}
+	
+	async save_single(t: Translation) {
+		await writeTextFile(t.file.path, JSON.stringify(t.translations, null, 2));
 	}
 
 	async createNewTranslation(name: string): Promise<Result<boolean, string>> {
@@ -180,7 +185,7 @@ export class TranslationState {
 
 		await writeTextFile(`${this.translationDir}/${name}`, '{}');
 		this.loadTranslations().then((x) => (this.translations = x));
-		this.populate([]);
+		this.populate(this.keyset());
 		return ok(true);
 	}
 
@@ -206,6 +211,21 @@ export class TranslationState {
 
 		this.dirty = true;
 	}
+
+	/**
+	 * Clears the translation for the specified key in all translations.
+	 *
+	 * @param key - The key of the translation to clear.
+	 * @returns A promise that resolves when the translations have been saved.
+	 */
+	async clearKey(key: string) {
+		for (const t of this.translations) {
+			t.translations[key] = '';
+		}
+
+		await this.save();
+	}
+
 	/**
 	 * Searches through all translations and finds duplicate values
 
