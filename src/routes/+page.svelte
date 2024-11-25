@@ -27,7 +27,7 @@
 			</a>
 			<div class="text-center">
 				You should also check your config!
-				<code>{#await path.appConfigDir() then x} {x}/config.json {/await}</code>
+				<span class="">{#await path.appConfigDir() then x} {x}/config.json {/await}</span>
 			</div>
 		</div>
 	</section>
