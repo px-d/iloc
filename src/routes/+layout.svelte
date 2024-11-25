@@ -29,7 +29,7 @@
 			Create
 		</a>
 	</ul>
-	<div>
+	<div class="hidden sm:block">
 		Loaded Locales:
 		{trState.translations.map((t) => t.locale).join(', ')}
 	</div>

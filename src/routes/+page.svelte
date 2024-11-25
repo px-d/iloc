@@ -35,7 +35,7 @@
 {:else}
 	<div class="flex h-[calc(100vh-56px)]">
 		<div
-			class="w-1/4 min-w-[300px] resize-x overflow-x-auto overflow-y-auto border-r border-gray-300 lg:w-1/5"
+			class="w-1/4 min-w-[300px] resize-x overflow-auto border-r border-gray-300 lg:w-1/5"
 		>
 			<div class="sticky top-0 w-full bg-white px-4 pb-4 dark:bg-slate-800">
 				<div
@@ -87,7 +87,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="flex-1 p-4">
+		<div class="flex-1 p-4 h-[calc(100vh-56px) overflow-auto">
 			{#if trState.selectedTranslationIndex === null}
 				<div class="dark:text-white">Select a key from the left!</div>
 			{:else}

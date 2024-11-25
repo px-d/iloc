@@ -9,12 +9,15 @@
 	let error = $state<null | string>(null);
 
 	const createNow = async (what: 'locale' | 'key', multiple: boolean = false) => {
+		console.log(multiple);
 		let redirect: Result<boolean, string> = ok(true);
 		if (what === 'key') {
 			redirect = translationState.createNewKey(create);
 		} else if (what === 'locale') {
-			redirect = await translationState.createNewTranslation(create);
+			redirect = await translationState.createNewLocale(create);
 		}
+
+		console.log(redirect);
 		create = '';
 
 		if (redirect.isOk && !multiple) {
@@ -29,39 +32,40 @@
 	};
 </script>
 
-<section class="mx-auto w-full sm:w-1/2 xl:w-1/4 2xl:w-1/5 self-center mt-24 dark:text-white">
+<section class="mx-auto mt-24 w-full self-center sm:w-1/2 xl:w-1/4 2xl:w-1/5 dark:text-white">
 	<div class="flex flex-col gap-4">
 		<input
 			type="text"
 			placeholder="Locale or Key"
-			class="border border-slate-200 rounded-lg p-4 outline-none"
+			class="rounded-lg border border-slate-200 p-4 outline-none"
 			bind:value={create}
 			autocorrect="off"
 		/>
 		{#if error}
-			<span class="text-red-400 text-sm -mt-2">{error}</span>
+			<span class="-mt-2 text-sm text-red-400">{error}</span>
 		{/if}
 
-		<div class="flex flex-col md:flex-row gap-4">
+		<div class="flex flex-col gap-4 md:flex-row">
 			<button
-				class="border w-full md:w-1/2 border-slate-200 hover:bg-slate-100 cursor-pointer rounded-lg px-4 py-2"
-				onclick={(e) => createNow('locale', e.shiftKey)}
+				class="w-full cursor-pointer rounded-lg border border-slate-200 px-4 py-2 hover:bg-slate-100 md:w-1/2 dark:hover:text-slate-700"
+				onclick={() => createNow('locale')}
 			>
 				Create Locale
 			</button>
 			<button
-				class="border w-full md:w-1/2 border-slate-200 hover:bg-slate-100 cursor-pointer rounded-lg px-4 py-2"
-				onclick={() => createNow('key')}
+				class="w-full cursor-pointer rounded-lg border border-slate-200 px-4 py-2 hover:bg-slate-100 md:w-1/2 dark:hover:text-slate-700"
+				onclick={(e) => createNow('key', e.shiftKey)}
 			>
 				Create Key
 			</button>
 		</div>
 
 		<span>
-			Locale:
+			<h1 class="font-bold text-lg mt-4">Examples:</h1>
+			<h2 class="mt-2 underline">Locale:</h2>
 			<pre>en.json, de-DE.json, en-GB.json</pre>
-			<br />
-			Keys:
+
+			<h2 class="mt-2 underline">Keys:</h2>
 			<pre>title.greeting.anything</pre>
 			<span class="text-slate-400">(Hold shift to create multiple locales)</span>
 		</span>

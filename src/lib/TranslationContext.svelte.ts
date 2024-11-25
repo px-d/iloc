@@ -1,6 +1,6 @@
 import { loadConfig } from '$lib';
 import { err, ok, Result } from '@px-d/rsjs';
-import { BaseDirectory, readDir, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
+import { readDir, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { getContext, setContext } from 'svelte';
 
 export type Translation = {
@@ -14,21 +14,18 @@ export type Translation = {
 
 export class TranslationState {
 	translationDir: string | null = null;
-	baseDir: BaseDirectory | null = null;
 
-	dirty = $state(false);
+	dirty: boolean = $state(false);
 
-	translations = $state<Translation[]>([]);
+	translations: Translation[] = $state([]);
 
 	searchQuery = $state('');
-	selectedTranslationIndex = $state<null | number>(null);
+	selectedTranslationIndex: null | number = $state(null);
 
 	/**
 	 * A reactive store that holds an array of filtered keys.
-	 *
-	 * @type {string[]} - An array of strings representing the filtered keys.
 	 */
-	filteredKeys = $state<string[]>([]);
+	filteredKeys: string[] = $state([]);
 
 	/**
 	 * A derived store that computes a sorted array of unique translation keys.
@@ -55,6 +52,7 @@ export class TranslationState {
 
 				this.loadTranslations().then((x) => {
 					this.translations = x;
+					this.save();
 					this.populate(this.keyset());
 				});
 			});
@@ -94,16 +92,10 @@ export class TranslationState {
 	}
 
 	/**
-	 * Converts this:
-	 * ```ts
-	 * { user: { id: 1, name: 'string' }}
-	 * ```
-	 * to this:
-	 * ```ts
-	 * { user.id: 1, user.name: 'string' }
-	 * ```
+	 * Flattens a nested object into a single level object with dot-separated keys.
 	 *
-	 * @param input the object to flatten
+	 * @param input - The nested object to flatten.
+	 * @returns A new object with flattened keys.
 	 */
 	private flatten(input: Record<string, unknown>) {
 		const result: Record<string, unknown> = {};
@@ -137,7 +129,7 @@ export class TranslationState {
 			file.name.endsWith('.json')
 		);
 
-		const x = await Promise.all(
+		const translationsResult = await Promise.all(
 			files.map(async (file) => {
 				const text = await readTextFile(`${this.translationDir}/${file.name}`);
 				return Result.wrap<Translation, string>(() => {
@@ -153,13 +145,15 @@ export class TranslationState {
 			})
 		);
 
-		return x.map((t) => (t.isOk ? t.unwrap() : null)).filter((x) => x !== null);
+		return translationsResult.map((t) => (t.isOk ? t.unwrap() : null)).filter((x) => x !== null);
 	}
 
 	async populate(keyset: string[]) {
+		console.log('Populating translations...');
 		for (const translation of this.translations) {
 			for (const key of keyset) {
 				if (!(key in translation.translations)) {
+					console.log('Adding', key);
 					translation.translations[key] = '';
 				}
 			}
@@ -171,20 +165,23 @@ export class TranslationState {
 	async save() {
 		await Promise.all(this.translations.map(this.save_single));
 	}
-	
+
 	async save_single(t: Translation) {
 		await writeTextFile(t.file.path, JSON.stringify(t.translations, null, 2));
 	}
 
-	async createNewTranslation(name: string): Promise<Result<boolean, string>> {
+	async createNewLocale(name: string): Promise<Result<boolean, string>> {
 		if (!name.includes('.json')) {
 			name = name + '.json';
 		}
 
 		name = name.replaceAll(' ', '_');
 
+		console.log('Creating new locale', name);
+
 		await writeTextFile(`${this.translationDir}/${name}`, '{}');
-		this.loadTranslations().then((x) => (this.translations = x));
+
+		await this.loadTranslations().then((x) => (this.translations = x));
 		this.populate(this.keyset());
 		return ok(true);
 	}
@@ -232,19 +229,40 @@ export class TranslationState {
 		@returns string[]
 	 */
 	getDuplicates() {
-		const valueMap: Record<string, { locale: string; dupes: string[] }> = {};
+		const dupes: Record<string, { locale: string; key: string }[]> = {};
 
 		this.translations.forEach((translation) => {
 			Object.entries(translation.translations).forEach(([key, value]) => {
-				const stringValue = String(value);
-				if (!valueMap[stringValue]) {
-					valueMap[stringValue] = { locale: translation.locale, dupes: [] };
+				if (!dupes[value]) {
+					dupes[value] = [];
 				}
-				valueMap[stringValue].dupes.push(key);
+				dupes[value].push({ locale: translation.locale, key });
 			});
 		});
 
-		return Object.entries(valueMap).filter(([v, keys]) => keys.dupes.length > 1 && v !== '');
+		const filteredDupes: Record<string, { locale: string; key: string }[]> = {};
+
+		Object.entries(dupes).forEach(([value, keys]) => {
+			if (keys.length > 1 && value.trim() !== '') {
+				filteredDupes[value] = keys;
+			}
+		});
+		
+		return filteredDupes
+		console.log(filteredDupes[0]);
+
+		// const valueMap: Record<string, { locale: string; dupes: string[] }> = {};
+
+		// this.translations.forEach((translation) => {
+		// 	Object.entries(translation.translations).forEach(([key, value]) => {
+		// 		if (!valueMap[value]) {
+		// 			valueMap[value] = { locale: translation.locale, dupes: [] };
+		// 		}
+		// 		valueMap[value].dupes.push(key);
+		// 	});
+		// });
+
+		// return Object.entries(valueMap).filter(([v, keys]) => keys.dupes.length > 1 && v !== '');
 	}
 }
 
